@@ -23,7 +23,7 @@ jobs:
         curl -LO https://gh.syuncloud.eu.org/https://github.com/XTLS/Xray-core/releases/download/$(curl -Ls "https://gh.syuncloud.eu.org/https://api.github.com/repos/XTLS/Xray-core/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')/Xray-linux-64.zip
         unzip Xray-linux-64.zip
         rm -rf geoip.dat geosite.dat LICENSE README.md Xray-linux-64.zip raytunnel/web.js
-        mv xray ray-docker/web.js
+        mv xray raytunnel/web.js
         echo "DATE=${DATE}" >> $GITHUB_ENV
         
     - name: Commit and Push
