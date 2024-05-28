@@ -1,0 +1,35 @@
+name: Download Xray Core
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 */3 * * *'
+
+jobs:
+  download-xray:
+    name: Download Xray Core
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4.0.0
+      with:
+        fetch-depth: 1
+        ref: main
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Download Xray Core
+      run: |
+        DATE=$(date "+%Y/%m/%d %H:%M:%S")
+        curl -LO https://gh.syuncloud.eu.org/https://github.com/XTLS/Xray-core/releases/download/$(curl -Ls "https://gh.syuncloud.eu.org/https://api.github.com/repos/XTLS/Xray-core/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')/Xray-linux-64.zip
+        unzip Xray-linux-64.zip
+        rm -rf geoip.dat geosite.dat LICENSE README.md Xray-linux-64.zip
+        mv xray ray-docker/web.js
+        echo "DATE=${DATE}" >> $GITHUB_ENV
+        
+    - name: Commit and Push
+      run: |
+        git config user.name "GitHub Actions Bot"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add raytunnel/web.js
+        git commit -m "Auto-update Xray to the latest version  ${{ env.DATE }}"
+        git push
