@@ -1,4 +1,4 @@
-name: Download
+name: 下载
 
 on:
   workflow_dispatch:
@@ -51,6 +51,7 @@ jobs:
         wget https://github.com/XTLS/xray-core/releases/download/$version/xray-linux-64.zip
         unzip -d raytunnel xray-linux-64.zip xray
         mv raytunnel/xray raytunnel/web.js
+        rm -rf xray-linux-64.zip
         echo "DATE=${DATE}" >> $GITHUB_ENV
         
     - name: Commit Changes
