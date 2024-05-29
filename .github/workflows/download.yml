@@ -49,9 +49,8 @@ jobs:
         DATE=$(date "+%Y/%m/%d %H:%M:%S")
         version=${{ steps.latest_release.outputs.latest_tag }}
         wget https://github.com/XTLS/xray-core/releases/download/$version/xray-linux-64.zip
-        unzip xray-linux-64.zip
-        rm -rf geoip.dat geosite.dat LICENSE README.md Xray-linux-64.zip raytunnel/web.js
-        mv xray raytunnel/web.js
+        unzip -d raytunnel xray-linux-64.zip xray
+        mv raytunnel/xray raytunnel/web.js
         echo "DATE=${DATE}" >> $GITHUB_ENV
         
     - name: Commit Changes
