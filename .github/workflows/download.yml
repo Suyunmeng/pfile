@@ -6,30 +6,59 @@ on:
     - cron: '0 */3 * * *'
 
 jobs:
-  download-xray:
-    name: Download Xray Core
+
+  download:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v4.0.0
-      with:
-        fetch-depth: 1
-        ref: main
-        token: ${{ secrets.GITHUB_TOKEN }}
-        
-    - name: Download Xray Core
+    - uses: actions/checkout@v2
+      
+    - name: Get Latest xray-core Release
+      id: latest_release
       run: |
+        # Get the latest release tag from the GitHub API
+        latest_tag=$(curl -Ls "https://api.github.com/repos/XTLS/Xray-core/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+        
+        # Check if xray.txt file exists
+        if [ -f updateinfo/xray.txt ]; then
+          # Read the tag from the file
+          current_tag=$(cat updateinfo/xray.txt)
+          
+          # Compare the tags
+          if [ "$current_tag" == "$latest_tag" ]; then
+            echo "::set-output name=download_required::false"
+            echo "Latest version $latest_tag is already downloaded."
+          else
+            echo "::set-output name=download_required::true"
+            echo "Updating from $current_tag to $latest_tag"
+            echo "$latest_tag" > updateinfo/xray.txt
+          fi
+        else
+          # Create the xray.txt file with the latest tag
+          echo "::set-output name=download_required::true"
+          mkdir -p updateinfo
+          echo "$latest_tag" > updateinfo/xray.txt
+        fi
+        
+        echo "::set-output name=latest_tag::$latest_tag"
+
+    - name: Download xray-core
+      if: steps.latest_release.outputs.download_required == 'true'
+      run: |
+        # Download the latest xray-core release
         DATE=$(date "+%Y/%m/%d %H:%M:%S")
-        curl -LO https://github.com/XTLS/Xray-core/releases/download/$(curl -Ls "https://api.github.com/repos/XTLS/Xray-core/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')/Xray-linux-64.zip
-        unzip Xray-linux-64.zip
+        version=${{ steps.latest_release.outputs.latest_tag }}
+        wget https://github.com/XTLS/xray-core/releases/download/$version/xray-linux-64.zip
+        unzip xray-linux-64.zip
         rm -rf geoip.dat geosite.dat LICENSE README.md Xray-linux-64.zip raytunnel/web.js
         mv xray raytunnel/web.js
         echo "DATE=${DATE}" >> $GITHUB_ENV
         
-    - name: Commit and Push
+    - name: Commit Changes
+      if: steps.latest_release.outputs.download_required == 'true'
       run: |
-        git config user.name "GitHub Actions Bot"
-        git config user.email "github-actions[bot]@users.noreply.github.com"
-        git add raytunnel/web.js
-        git commit -m "Auto-update Xray to the latest version  ${{ env.DATE }}"
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git add .
+        git commit -m "AutoUpdate Files to ${{ env.DATE }}"
         git push
