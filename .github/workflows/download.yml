@@ -9,6 +9,7 @@ jobs:
   download-xray:
     name: Download Xray Core
     runs-on: ubuntu-latest
+    if: ${{ steps.xray_version.outputs.version != 'raytunnel/web.js' }}
     
     steps:
     - uses: actions/checkout@v4.0.0
@@ -17,19 +18,28 @@ jobs:
         ref: main
         token: ${{ secrets.GITHUB_TOKEN }}
         
+    - name: Check Latest Xray Version
+      id: xray_version
+      run: |
+        latest_version=$(curl -Ls "https://api.github.com/repos/XTLS/Xray-core/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+        echo "Latest Xray version: $latest_version"
+        echo "::set-output name=version::$latest_version"
+        
     - name: Download Xray Core
       run: |
         DATE=$(date "+%Y/%m/%d %H:%M:%S")
-        curl -LO https://gh.syuncloud.eu.org/https://github.com/XTLS/Xray-core/releases/download/$(curl -Ls "https://gh.syuncloud.eu.org/https://api.github.com/repos/XTLS/Xray-core/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')/Xray-linux-64.zip
+        curl -LO https://github.com/XTLS/Xray-core/releases/download/${{ steps.xray_version.outputs.version }}/Xray-linux-64.zip
         unzip Xray-linux-64.zip
-        rm -rf geoip.dat geosite.dat LICENSE README.md Xray-linux-64.zip raytunnel/web.js
+        rm -rf geoip.dat geosite.dat LICENSE README.md Xray-linux-64.zip
+        if [ -f raytunnel/web.js ]; then
+          rm raytunnel/web.js
+        fi
         mv xray raytunnel/web.js
-        echo "DATE=${DATE}" >> $GITHUB_ENV
         
     - name: Commit and Push
       run: |
         git config user.name "GitHub Actions Bot"
         git config user.email "github-actions[bot]@users.noreply.github.com"
         git add raytunnel/web.js
-        git commit -m "Auto-update Xray to the latest version  ${{ env.DATE }}"
+        git commit -m "Auto-update Xray to version ${{ steps.xray_version.outputs.version }} ($DATE)"
         git push
