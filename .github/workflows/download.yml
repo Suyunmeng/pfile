@@ -1,0 +1,68 @@
+name: Update Public Library
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+
+  Xray-Core:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@master
+      
+    - name: Get Latest xray-core Release
+      id: latest_release
+      run: |
+        # Get the latest release tag from the GitHub API
+        latest_tag=$(curl -Ls "https://api.github.com/repos/XTLS/Xray-core/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+        
+        # Check if xray.txt file exists
+        if [ -f updateinfo/xray.txt ]; then
+          # Read the tag from the file
+          current_tag=$(cat updateinfo/xray.txt)
+          
+          # Compare the tags
+          if [ "$current_tag" == "$latest_tag" ]; then
+            echo "{download_required}={false}>> $Xray-DownloadCheck"
+            echo "Latest version $latest_tag is already downloaded."
+          else
+            echo "::set-output name=download_required::true"
+            echo "Updating from $current_tag to $latest_tag"
+            echo "$latest_tag" > updateinfo/xray.txt
+          fi
+        else
+          # Create the xray.txt file with the latest tag
+          echo "::set-output name=download_required::true"
+          mkdir -p updateinfo
+          echo "$latest_tag" > updateinfo/xray.txt
+        fi
+        
+        echo "::set-output name=latest_tag::$latest_tag"
+
+    - name: Download xray-core
+      if: steps.latest_release.outputs.download_required == 'true'
+      run: |
+        # Download the latest xray-core release
+        DATE=$(date "+%Y/%m/%d %H:%M:%S")
+        version=${{ steps.latest_release.outputs.latest_tag }}
+        wget https://github.com/XTLS/xray-core/releases/download/$version/xray-linux-64.zip
+        unzip -d raytunnel xray-linux-64.zip xray
+        mv raytunnel/xray raytunnel/web.js
+        rm -rf xray-linux-64.zip
+        echo "DATE=${DATE}" >> $GITHUB_ENV
+        
+    - name: Commit Changes
+      if: steps.latest_release.outputs.download_required == 'true'
+      run: |
+        git config user.name "GitHub Actions Bot"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add .
+        git commit -m "AutoUpdate Files to ${{ env.DATE }}"
+
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
