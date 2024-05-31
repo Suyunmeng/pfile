@@ -40,7 +40,7 @@ jobs:
           echo "$latest_tag" > updateinfo/xray.txt
         fi
         
-          echo "{latest_tag}={$latest_tag}>> $GITHUB_OUTPUT
+          echo "{latest_tag}={$latest_tag}>> $GITHUB_OUTPUT"
 
     - name: Download xray-core
       if: steps.latest_release.outputs.download_required == 'true'
