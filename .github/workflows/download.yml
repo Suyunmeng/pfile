@@ -26,21 +26,21 @@ jobs:
           
           # Compare the tags
           if [ "$current_tag" == "$latest_tag" ]; then
-            echo "{download_required}={false}">> "$GITHUB_OUTPUT"
+            echo "download_required=false">> "$GITHUB_OUTPUT"
             echo "Latest version $latest_tag is already downloaded."
           else
-            echo "{download_required}={true}">> "$GITHUB_OUTPUT"
+            echo "download_required=true">> "$GITHUB_OUTPUT"
             echo "Updating from $current_tag to $latest_tag"
             echo "$latest_tag" > updateinfo/xray.txt
           fi
         else
           # Create the xray.txt file with the latest tag
-          echo "{download_required}={true}">> "$GITHUB_OUTPUT"
+          echo "download_required=true">> "$GITHUB_OUTPUT"
           mkdir -p updateinfo
           echo "$latest_tag" > updateinfo/xray.txt
         fi
         
-          echo "{latest_tag}={$latest_tag}">> "$GITHUB_OUTPUT"
+          echo "latest_tag=$latest_tag">> "$GITHUB_OUTPUT"
 
     - name: Download xray-core
       if: steps.latest_release.outputs.download_required == 'true'
