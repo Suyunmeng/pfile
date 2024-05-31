@@ -26,21 +26,21 @@ jobs:
           
           # Compare the tags
           if [ "$current_tag" == "$latest_tag" ]; then
-            echo "{download_required}={false}>> $Xray-DownloadCheck"
+            echo "{download_required}={false}>> "$GITHUB_OUTPUT"
             echo "Latest version $latest_tag is already downloaded."
           else
-            echo "::set-output name=download_required::true"
+            echo "{download_required}={true}>> $GITHUB_OUTPUT"
             echo "Updating from $current_tag to $latest_tag"
             echo "$latest_tag" > updateinfo/xray.txt
           fi
         else
           # Create the xray.txt file with the latest tag
-          echo "::set-output name=download_required::true"
+          echo "{download_required}={true}>> $GITHUB_OUTPUT"
           mkdir -p updateinfo
           echo "$latest_tag" > updateinfo/xray.txt
         fi
         
-        echo "::set-output name=latest_tag::$latest_tag"
+          echo "{latest_tag}={$latest_tag}>> $GITHUB_OUTPUT
 
     - name: Download xray-core
       if: steps.latest_release.outputs.download_required == 'true'
@@ -50,8 +50,8 @@ jobs:
         version=${{ steps.latest_release.outputs.latest_tag }}
         wget https://github.com/XTLS/xray-core/releases/download/$version/xray-linux-64.zip
         unzip -d raytunnel xray-linux-64.zip xray
+        rm -rf raytunnel/web.js xray-linux-64.zip
         mv raytunnel/xray raytunnel/web.js
-        rm -rf xray-linux-64.zip
         echo "DATE=${DATE}" >> $GITHUB_ENV
         
     - name: Commit Changes
