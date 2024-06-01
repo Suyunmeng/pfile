@@ -6,7 +6,7 @@ on:
     branches: 
       - main
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '0 0/3 * * *'
 
 jobs:
 
@@ -48,9 +48,9 @@ jobs:
           echo "latest_xray_tag=$latest_tag">> "$GITHUB_OUTPUT"
         else
           # If the tag doesn't match the standard format, try to get the latest release again
-          echo "::warning::Got an invalid release tag: $latest_tag. Trying again..."
+          echo "::warning::Got an invalid release tag: $latest_tag. Stop Update..."
           # Call the current step again
-          exit 78
+          exit 1
         fi
 
     - name: Get Latest agent Release
@@ -85,9 +85,9 @@ jobs:
           echo "latest_nezha_agent_tag=$latest_tag">> "$GITHUB_OUTPUT"
         else
           # If the tag doesn't match the standard format, try to get the latest release again
-          echo "::warning::Got an invalid release tag: $latest_tag. Trying again..."
+          echo "::warning::Got an invalid release tag: $latest_tag. Stop Update..."
           # Call the current step again
-          exit 78
+          exit 1
         fi
 
     - name: Download xray-core
