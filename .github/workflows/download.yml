@@ -103,7 +103,7 @@ jobs:
         echo "DATE=${DATE}" >> $GITHUB_ENV
         
     - name: Download Nezha-Agent
-      if: steps.latest_nezha_agent_release.outputs.agent_download_required == 'true'
+      if: steps.latest_nezha_agent_release.outputs.nezha_agent_download_required == 'true'
       run: |
         # Download the latest agent release
         DATE=$(date "+%Y/%m/%d %H:%M:%S")
