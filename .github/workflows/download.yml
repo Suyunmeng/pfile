@@ -19,28 +19,36 @@ jobs:
         # Get the latest release tag from the GitHub API
         latest_tag=$(curl -Ls "https://api.github.com/repos/XTLS/Xray-core/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
         
-        # Check if xray.txt file exists
-        if [ -f updateinfo/xray.txt ]; then
-          # Read the tag from the file
-          current_tag=$(cat updateinfo/xray.txt)
-          
-          # Compare the tags
-          if [ "$current_tag" == "$latest_tag" ]; then
-            echo "download_required=false">> "$GITHUB_OUTPUT"
-            echo "Latest version $latest_tag is already downloaded."
+        # Check if the tag matches the standard format (e.g. v1.8.13)
+        if [[ $latest_tag =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          # Check if xray.txt file exists
+          if [ -f updateinfo/xray.txt ]; then
+            # Read the tag from the file
+            current_tag=$(cat updateinfo/xray.txt)
+            
+            # Compare the tags
+            if [ "$current_tag" == "$latest_tag" ]; then
+              echo "download_required=false">> "$GITHUB_OUTPUT"
+              echo "Latest version $latest_tag is already downloaded."
+            else
+              echo "download_required=true">> "$GITHUB_OUTPUT"
+              echo "Updating from $current_tag to $latest_tag"
+              echo "$latest_tag" > updateinfo/xray.txt
+            fi
           else
+            # Create the xray.txt file with the latest tag
             echo "download_required=true">> "$GITHUB_OUTPUT"
-            echo "Updating from $current_tag to $latest_tag"
+            mkdir -p updateinfo
             echo "$latest_tag" > updateinfo/xray.txt
           fi
-        else
-          # Create the xray.txt file with the latest tag
-          echo "download_required=true">> "$GITHUB_OUTPUT"
-          mkdir -p updateinfo
-          echo "$latest_tag" > updateinfo/xray.txt
-        fi
-        
+          
           echo "latest_tag=$latest_tag">> "$GITHUB_OUTPUT"
+        else
+          # If the tag doesn't match the standard format, try to get the latest release again
+          echo "download_required=true">> "$GITHUB_OUTPUT"
+          echo "Got an invalid release tag: $latest_tag. Trying again..."
+          exit 1
+        fi
 
     - name: Download xray-core
       if: steps.latest_release.outputs.download_required == 'true'
