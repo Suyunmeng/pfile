@@ -10,7 +10,7 @@ on:
 
 jobs:
 
-  Update Library:
+  Update-Library:
     runs-on: ubuntu-latest
     
     steps:
