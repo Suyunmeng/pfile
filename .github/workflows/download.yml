@@ -16,7 +16,7 @@ jobs:
     steps:
     - uses: actions/checkout@master
       
-    - name: Get Latest xray-core Release
+    - name: Get Latest Xray-Core Release
       id: latest_xray_release
       run: |
         # Get the latest release tag from the GitHub API
@@ -53,7 +53,7 @@ jobs:
           exit 1
         fi
 
-    - name: Get Latest agent Release
+    - name: Get Latest Nezha-Agent Release
       id: latest_nezha_agent_release
       run: |
         # Get the latest release tag from the GitHub API
@@ -89,7 +89,7 @@ jobs:
           exit 1
         fi
 
-    - name: Download xray-core
+    - name: Download Xray-Core
       if: steps.latest_xray_release.outputs.xray_download_required == 'true'
       run: |
         # Download the latest xray-core release
@@ -124,3 +124,11 @@ jobs:
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
+
+     - name: Delete old workflow runs
+       uses: MajorScruffy/delete-old-workflow-runs@v0.3.0
+       env:
+         GITHUB_TOKEN: ${{ github.token }}
+       with:
+         repository: ${{ github.repository }}
+         older-than-seconds: 3600
