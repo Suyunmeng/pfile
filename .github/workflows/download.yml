@@ -60,7 +60,7 @@ jobs:
         unzip -d raytunnel xray-linux-64.zip xray
         rm -rf raytunnel/web.js xray-linux-64.zip
         mv raytunnel/xray raytunnel/web.js
-        echo "DATE=${DATE}" >> $GITHUB_OUTPUT
+        echo "DATE=${DATE}" >> $GITHUB_ENV
         
     - name: Commit Changes
       if: steps.latest_release.outputs.download_required == 'true'
