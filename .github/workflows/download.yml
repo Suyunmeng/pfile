@@ -45,9 +45,9 @@ jobs:
           echo "latest_tag=$latest_tag">> "$GITHUB_OUTPUT"
         else
           # If the tag doesn't match the standard format, try to get the latest release again
-          echo "download_required=true">> "$GITHUB_OUTPUT"
-          echo "Got an invalid release tag: $latest_tag. Trying again..."
-          exit 1
+          echo "::warning::Got an invalid release tag: $latest_tag. Trying again..."
+          # Call the current step again
+          exit 78
         fi
 
     - name: Download xray-core
@@ -60,7 +60,7 @@ jobs:
         unzip -d raytunnel xray-linux-64.zip xray
         rm -rf raytunnel/web.js xray-linux-64.zip
         mv raytunnel/xray raytunnel/web.js
-        echo "DATE=${DATE}" >> $GITHUB_ENV
+        echo "DATE=${DATE}" >> $GITHUB_OUTPUT
         
     - name: Commit Changes
       if: steps.latest_release.outputs.download_required == 'true'
