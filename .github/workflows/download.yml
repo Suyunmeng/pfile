@@ -71,7 +71,7 @@ jobs:
               echo "nezha_agent_download_required=false">> "$GITHUB_OUTPUT"
               echo "Latest version $latest_tag is already downloaded."
             else
-              echo "agent_download_required=true">> "$GITHUB_OUTPUT"
+              echo "nezha_agent_download_required=true">> "$GITHUB_OUTPUT"
               echo "Updating from $current_tag to $latest_tag"
               echo "$latest_tag" > updateinfo/nezha-agent.txt
             fi
@@ -102,7 +102,7 @@ jobs:
         mv raytunnel/xray raytunnel/web.js
         echo "DATE=${DATE}" >> $GITHUB_ENV
         
-    - name: Download agent
+    - name: Download Nezha-Agent
       if: steps.latest_nezha_agent_release.outputs.agent_download_required == 'true'
       run: |
         # Download the latest agent release
@@ -114,7 +114,7 @@ jobs:
         mv raytunnel/nezha-agent other/nezha-agent
         
     - name: Commit Changes
-      if: steps.latest_xray_release.outputs.xray_download_required == 'true' || steps.latest_nezha_agent_release.outputs.agent_download_required == 'true'
+      if: steps.latest_xray_release.outputs.xray_download_required == 'true' || steps.latest_nezha_agent_release.outputs.nezha_agent_download_required == 'true'
       run: |
         git config user.name "GitHub Actions Bot"
         git config user.email "github-actions[bot]@users.noreply.github.com"
