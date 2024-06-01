@@ -71,6 +71,7 @@ jobs:
         git commit -m "AutoUpdate Files to ${{ env.DATE }}"
 
     - name: Push changes
+      if: steps.latest_release.outputs.download_required == 'true'
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
