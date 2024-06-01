@@ -120,6 +120,7 @@ jobs:
         git commit -m "AutoUpdate Files to ${DATE}"
 
     - name: Push changes
+      if: steps.latest_xray_release.outputs.xray_download_required == 'true' || steps.latest_nezha_agent_release.outputs.nezha_agent_download_required == 'true'
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
