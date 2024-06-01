@@ -109,9 +109,9 @@ jobs:
         DATE=$(date "+%Y/%m/%d %H:%M:%S")
         version=${{ steps.latest_nezha_agent_release.outputs.latest_nezha_agent_tag }}
         wget https://github.com/nezhahq/agent/releases/download/$version/nezha-agent_linux_amd64.zip
+        rm -rf other/nezha-agent 
         unzip -d other nezha-agent_linux_amd64.zip nezha-agent
-        rm -rf other/nezha-agent nezha-agent_linux_amd64.zip
-        mv raytunnel/nezha-agent other/nezha-agent
+        rm -rf nezha-agent_linux_amd64.zip
         
     - name: Commit Changes
       if: steps.latest_xray_release.outputs.xray_download_required == 'true' || steps.latest_nezha_agent_release.outputs.nezha_agent_download_required == 'true'
