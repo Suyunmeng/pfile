@@ -17,7 +17,7 @@ jobs:
     - uses: actions/checkout@master
       
     - name: Get Latest xray-core Release
-      id: latest_release
+      id: latest_xray_release
       run: |
         # Get the latest release tag from the GitHub API
         latest_tag=$(curl -Ls "https://api.github.com/repos/XTLS/Xray-core/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
@@ -31,21 +31,58 @@ jobs:
             
             # Compare the tags
             if [ "$current_tag" == "$latest_tag" ]; then
-              echo "download_required=false">> "$GITHUB_OUTPUT"
+              echo "xray_download_required=false">> "$GITHUB_OUTPUT"
               echo "Latest version $latest_tag is already downloaded."
             else
-              echo "download_required=true">> "$GITHUB_OUTPUT"
+              echo "xray_download_required=true">> "$GITHUB_OUTPUT"
               echo "Updating from $current_tag to $latest_tag"
               echo "$latest_tag" > updateinfo/xray.txt
             fi
           else
             # Create the xray.txt file with the latest tag
-            echo "download_required=true">> "$GITHUB_OUTPUT"
+            echo "xray_download_required=true">> "$GITHUB_OUTPUT"
             mkdir -p updateinfo
             echo "$latest_tag" > updateinfo/xray.txt
           fi
           
-          echo "latest_tag=$latest_tag">> "$GITHUB_OUTPUT"
+          echo "latest_xray_tag=$latest_tag">> "$GITHUB_OUTPUT"
+        else
+          # If the tag doesn't match the standard format, try to get the latest release again
+          echo "::warning::Got an invalid release tag: $latest_tag. Trying again..."
+          # Call the current step again
+          exit 78
+        fi
+
+    - name: Get Latest agent Release
+      id: latest_nezha_agent_release
+      run: |
+        # Get the latest release tag from the GitHub API
+        latest_tag=$(curl -Ls "https://api.github.com/repos/nezhahq/agent/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+        
+        # Check if the tag matches the standard format (e.g. v1.8.13)
+        if [[ $latest_tag =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          # Check if nezha_agent.txt file exists
+          if [ -f updateinfo/nezha_agent.txt ]; then
+            # Read the tag from the file
+            current_tag=$(cat updateinfo/nezha_agent.txt)
+            
+            # Compare the tags
+            if [ "$current_tag" == "$latest_tag" ]; then
+              echo "nezha_agent_download_required=false">> "$GITHUB_OUTPUT"
+              echo "Latest version $latest_tag is already downloaded."
+            else
+              echo "agent_download_required=true">> "$GITHUB_OUTPUT"
+              echo "Updating from $current_tag to $latest_tag"
+              echo "$latest_tag" > updateinfo/nezha-agent.txt
+            fi
+          else
+            # Create the nezha-agent.txt file with the latest tag
+            echo "nezha_agent_download_required=true">> "$GITHUB_OUTPUT"
+            mkdir -p updateinfo
+            echo "$latest_tag" > updateinfo/nezha-agent.txt
+          fi
+          
+          echo "latest_nezha_agent_tag=$latest_tag">> "$GITHUB_OUTPUT"
         else
           # If the tag doesn't match the standard format, try to get the latest release again
           echo "::warning::Got an invalid release tag: $latest_tag. Trying again..."
@@ -54,19 +91,30 @@ jobs:
         fi
 
     - name: Download xray-core
-      if: steps.latest_release.outputs.download_required == 'true'
+      if: steps.latest_xray_release.outputs.xray_download_required == 'true'
       run: |
         # Download the latest xray-core release
         DATE=$(date "+%Y/%m/%d %H:%M:%S")
-        version=${{ steps.latest_release.outputs.latest_tag }}
+        version=${{ steps.latest_xray_release.outputs.latest_xray_tag }}
         wget https://github.com/XTLS/xray-core/releases/download/$version/xray-linux-64.zip
         unzip -d raytunnel xray-linux-64.zip xray
         rm -rf raytunnel/web.js xray-linux-64.zip
         mv raytunnel/xray raytunnel/web.js
         echo "DATE=${DATE}" >> $GITHUB_ENV
         
+    - name: Download agent
+      if: steps.latest_nezha_agent_release.outputs.agent_download_required == 'true'
+      run: |
+        # Download the latest agent release
+        DATE=$(date "+%Y/%m/%d %H:%M:%S")
+        version=${{ steps.latest_nezha_agent_release.outputs.latest_nezha_agent_tag }}
+        wget https://github.com/nezhahq/agent/releases/download/$version/nezha-agent_linux_amd64.zip
+        unzip -d other nezha-agent_linux_amd64.zip nezha-agent
+        rm -rf other/nezha-agent nezha-agent_linux_amd64.zip
+        mv raytunnel/nezha-agent other/nezha-agent
+        
     - name: Commit Changes
-      if: steps.latest_release.outputs.download_required == 'true'
+      if: steps.latest_xray_release.outputs.xray_download_required == 'true' || steps.latest_nezha_agent_release.outputs.agent_download_required == 'true'
       run: |
         git config user.name "GitHub Actions Bot"
         git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -74,7 +122,6 @@ jobs:
         git commit -m "AutoUpdate Files to ${{ env.DATE }}"
 
     - name: Push changes
-      if: steps.latest_release.outputs.download_required == 'true'
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
