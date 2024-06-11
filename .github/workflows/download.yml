@@ -62,9 +62,9 @@ jobs:
         # Check if the tag matches the standard format (e.g. v1.8.13)
         if [[ $latest_tag =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
           # Check if nezha_agent.txt file exists
-          if [ -f updateinfo/nezha_agent.txt ]; then
+          if [ -f updateinfo/nezha-agent.txt ]; then
             # Read the tag from the file
-            current_tag=$(cat updateinfo/nezha_agent.txt)
+            current_tag=$(cat updateinfo/nezha-agent.txt)
             
             # Compare the tags
             if [ "$current_tag" == "$latest_tag" ]; then
@@ -78,7 +78,7 @@ jobs:
           else
             # Create the nezha-agent.txt file with the latest tag
             echo "nezha_agent_download_required=true">> "$GITHUB_OUTPUT"
-            echo "$latest_tag" > updateinfo/nezha_agent.txt
+            echo "$latest_tag" > updateinfo/nezha-agent.txt
           fi
           
           echo "latest_nezha_agent_tag=$latest_tag">> "$GITHUB_OUTPUT"
