@@ -47,7 +47,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: latest
+        tag_name: public-packages
         name: Packages Dynamic Updates
         body: |
           **更新列表：**
