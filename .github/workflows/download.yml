@@ -13,9 +13,6 @@ jobs:
     steps:
     - uses: actions/checkout@main
     
-    - name: Install jq
-      run: sudo apt-get update && sudo apt-get install -y jq
-    
     - name: Get Xray-core
       run: |
         curl -L $(curl -s https://api.github.com/repos/XTLS/Xray-core/releases/latest | jq -r ".assets[] | select(.name | endswith(\"linux-64.zip\")) | .browser_download_url") -o webjs.zip
