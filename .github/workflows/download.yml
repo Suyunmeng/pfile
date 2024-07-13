@@ -40,7 +40,7 @@ jobs:
       run: |
         for file in *cloudflared*; do
           if [ -f "$file" ]; then
-            mv "$file" cloudflared
+            mv "$file" cloudflared-freebsd
           fi
         done
         
@@ -61,4 +61,4 @@ jobs:
         files: |
           web.js
           nezha-agent
-          cloudflared
+          cloudflared-freebsd
