@@ -50,7 +50,7 @@ jobs:
         tag_name: latest
         name: Packages Dynamic Updates
         body: |
-          更新列表：
+          **更新列表：**
           1、[Xray-Core](https://github.com/XTLS/Xray-core) Latest Version (amd64)
           2、[Cloudflare Tunnel](https://github.com/cloudflare/cloudflared) Tunnel Latest Version (amd64,[freebsd-amd64](https://cloudflared.bowring.uk/))
           3、[Nezha-Agent](https://github.com/nezhahq/agent) Latest Version (amd64)
