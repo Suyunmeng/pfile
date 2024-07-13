@@ -50,6 +50,12 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: latest
+        name: Packages Dynamic Updates
+        body: |
+          更新列表：
+          1、XTLS/Xray-core Latest Version
+          2、Cloudflare Tunnel-Freebsd Latest Version 
+          3、Nezha-Agent Latest Version
         draft: false
         prerelease: false
         files: |
