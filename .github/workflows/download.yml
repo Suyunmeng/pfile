@@ -61,7 +61,7 @@ jobs:
           cloudflared-freebsd
 
     - name: Delete old workflow runs
-      uses: MajorScruffy/delete-old-workflow-runs@v0.3.0
+      uses: Suyunmeng/delete-old-workflow-runs@main
       env:
         GITHUB_TOKEN: ${{ github.token }}
       with:
