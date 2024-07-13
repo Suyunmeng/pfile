@@ -1,134 +1,52 @@
-name: Update Public Library
+name: Release Assets
 
 on:
-  workflow_dispatch:
   push:
-    branches: 
-      - main
+    branches:
+      - packages-update
   schedule:
-    - cron: '0 0/3 * * *'
+    - cron: '0 */2 * * *'
 
 jobs:
 
-  Update-Library:
+  build:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@master
-      
-    - name: Get Latest Xray-Core Release
-      id: latest_xray_release
+    - uses: actions/checkout@v2
+    
+    - name: Install jq
+      run: sudo apt-get update && sudo apt-get install -y jq p7zip-full
+    
+    - name: Get Xray-core
       run: |
-        # Get the latest release tag from the GitHub API
-        latest_tag=$(curl -Ls "https://api.github.com/repos/XTLS/Xray-core/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+        curl -L $(curl -s https://api.github.com/repos/XTLS/Xray-core/releases/latest | jq -r ".assets[] | select(.name | endswith(\"linux-64.zip\")) | .browser_download_url") -o webjs.zip
+        unzip -q webjs.zip xray
+        rm -rf webjs.zip
+        mv xray web.js
         
-        # Check if the tag matches the standard format (e.g. v1.8.13)
-        if [[ $latest_tag =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-          # Check if xray.txt file exists
-          if [ -f updateinfo/xray.txt ]; then
-            # Read the tag from the file
-            current_tag=$(cat updateinfo/xray.txt)
-            
-            # Compare the tags
-            if [ "$current_tag" == "$latest_tag" ]; then
-              echo "xray_download_required=false">> "$GITHUB_OUTPUT"
-              echo "Latest version $latest_tag is already downloaded."
-            else
-              echo "xray_download_required=true">> "$GITHUB_OUTPUT"
-              echo "Updating from $current_tag to $latest_tag"
-              echo "$latest_tag" > updateinfo/xray.txt
-            fi
-          else
-            # Create the xray.txt file with the latest tag
-            echo "xray_download_required=true">> "$GITHUB_OUTPUT"
-            mkdir -p updateinfo
-            echo "$latest_tag" > updateinfo/xray.txt
-          fi
-          
-          echo "latest_xray_tag=$latest_tag">> "$GITHUB_OUTPUT"
-        else
-          # If the tag doesn't match the standard format, try to get the latest release again
-          echo "::warning::Got an invalid release tag: $latest_tag. Stop Update..."
-          # Call the current step again
-          exit 1
-        fi
-
-    - name: Get Latest Nezha-Agent Release
-      id: latest_nezha_agent_release
+    - name: Get Nezha Agent  
       run: |
-        # Get the latest release tag from the GitHub API
-        latest_tag=$(curl -Ls "https://api.github.com/repos/nezhahq/agent/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+        curl -L $(curl -s https://api.github.com/repos/nezhahq/agent/releases/latest | jq -r ".assets[] | select(.name | endswith(\"linux_amd64.zip\")) | .browser_download_url") -o nezha.zip
+        unzip -q nezha.zip nezha-agent
+        rm -rf nezha.zip
         
-        # Check if the tag matches the standard format (e.g. v1.8.13)
-        if [[ $latest_tag =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-          # Check if nezha_agent.txt file exists
-          if [ -f updateinfo/nezha-agent.txt ]; then
-            # Read the tag from the file
-            current_tag=$(cat updateinfo/nezha-agent.txt)
-            
-            # Compare the tags
-            if [ "$current_tag" == "$latest_tag" ]; then
-              echo "nezha_agent_download_required=false">> "$GITHUB_OUTPUT"
-              echo "Latest version $latest_tag is already downloaded."
-            else
-              echo "nezha_agent_download_required=true">> "$GITHUB_OUTPUT"
-              echo "Updating from $current_tag to $latest_tag"
-              echo "$latest_tag" > updateinfo/nezha-agent.txt
-            fi
-          else
-            # Create the nezha-agent.txt file with the latest tag
-            echo "nezha_agent_download_required=true">> "$GITHUB_OUTPUT"
-            echo "$latest_tag" > updateinfo/nezha-agent.txt
-          fi
-          
-          echo "latest_nezha_agent_tag=$latest_tag">> "$GITHUB_OUTPUT"
-        else
-          # If the tag doesn't match the standard format, try to get the latest release again
-          echo "::warning::Got an invalid release tag: $latest_tag. Stop Update..."
-          # Call the current step again
-          exit 1
-        fi
-
-    - name: Download Xray-Core
-      if: steps.latest_xray_release.outputs.xray_download_required == 'true'
+    - name: Get Cloudflared
       run: |
-        # Download the latest xray-core release
-        version=${{ steps.latest_xray_release.outputs.latest_xray_tag }}
-        wget https://github.com/XTLS/xray-core/releases/download/$version/xray-linux-64.zip
-        unzip -d raytunnel xray-linux-64.zip xray
-        rm -rf raytunnel/web.js xray-linux-64.zip
-        mv raytunnel/xray raytunnel/web.js
+        curl -L https://cloudflared.bowring.uk/binaries/cloudflared-freebsd-latest.7z -o cloudflared.7z
+        7z x cloudflared.7z
+        mv temp/* .
+        rm -rf cloudflared.7z
         
-    - name: Download Nezha-Agent
-      if: steps.latest_nezha_agent_release.outputs.nezha_agent_download_required == 'true'
-      run: |
-        # Download the latest agent release
-        DATE=$(date "+%Y/%m/%d %H:%M:%S")
-        version=${{ steps.latest_nezha_agent_release.outputs.latest_nezha_agent_tag }}
-        wget https://github.com/nezhahq/agent/releases/download/$version/nezha-agent_linux_amd64.zip
-        rm -rf other/nezha-agent 
-        unzip -d other nezha-agent_linux_amd64.zip nezha-agent
-        rm -rf nezha-agent_linux_amd64.zip
-        
-    - name: Commit Changes
-      if: steps.latest_xray_release.outputs.xray_download_required == 'true' || steps.latest_nezha_agent_release.outputs.nezha_agent_download_required == 'true'
-      run: |
-        DATE=$(date "+%Y/%m/%d %H:%M:%S")
-        git config user.name "GitHub Actions Bot"
-        git config user.email "github-actions[bot]@users.noreply.github.com"
-        git add .
-        git commit -m "AutoUpdate Files to ${DATE}"
-
-    - name: Push changes
-      if: steps.latest_xray_release.outputs.xray_download_required == 'true' || steps.latest_nezha_agent_release.outputs.nezha_agent_download_required == 'true'
-      uses: ad-m/github-push-action@master
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Delete old workflow runs
-      uses: MajorScruffy/delete-old-workflow-runs@v0.3.0
+    - name: Release
+      uses: softprops/action-gh-release@v1
       env:
-        GITHUB_TOKEN: ${{ github.token }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        repository: ${{ github.repository }}
-        older-than-seconds: 3600
+        tag_name: latest
+        draft: false
+        prerelease: false
+        files: |
+          web.js
+          nezha-agent
+          cloudflared
