@@ -32,12 +32,13 @@ jobs:
         7z x cloudflared.7z
         mv temp/* .
         rm -rf cloudflared.7z
+        curl -L $(curl -s https://api.github.com/repos/cloudflare/cloudflared/releases/latest | jq -r ".assets[] | select(.name | endswith(\"cloudflared-linux-amd64\")) | .browser_download_url") -o cloudflared
         
     - name: Rename cloudflared file
       run: |
-        for file in *cloudflared*; do
+        for file in *cloudflared-freebsd*; do
           if [ -f "$file" ]; then
-            mv "$file" cloudflared-freebsd
+            mv "$file" cloudflared.freebsd
           fi
         done
         
@@ -50,15 +51,16 @@ jobs:
         name: Packages Dynamic Updates
         body: |
           更新列表：
-          1、XTLS/Xray-core Latest Version
-          2、Cloudflare Tunnel-Freebsd Latest Version 
-          3、Nezha-Agent Latest Version
+          1、[Xray-Core](https://github.com/XTLS/Xray-core) Latest Version (amd64)
+          2、[Cloudflare Tunnel](https://github.com/cloudflare/cloudflared) Tunnel Latest Version (amd64,[freebsd-amd64](https://cloudflared.bowring.uk/))
+          3、[Nezha-Agent](https://github.com/nezhahq/agent) Latest Version (amd64)
         draft: false
         prerelease: false
         files: |
           web.js
           nezha-agent
-          cloudflared-freebsd
+          cloudflared
+          cloudflared.freebsd
 
     - name: Delete old workflow runs
       uses: Suyunmeng/delete-old-workflow-runs@main
