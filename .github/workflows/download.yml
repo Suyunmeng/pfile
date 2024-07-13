@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@main
     
     - name: Install jq
       run: sudo apt-get update && sudo apt-get install -y jq
@@ -62,3 +62,11 @@ jobs:
           web.js
           nezha-agent
           cloudflared-freebsd
+
+    - name: Delete old workflow runs
+      uses: MajorScruffy/delete-old-workflow-runs@v0.3.0
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        repository: ${{ github.repository }}
+        older-than-seconds: 3600
