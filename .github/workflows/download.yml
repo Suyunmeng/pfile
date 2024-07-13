@@ -1,4 +1,4 @@
-name: Release Assets
+name: Update Public Library
 
 on:
   workflow_dispatch:
@@ -7,7 +7,7 @@ on:
 
 jobs:
 
-  build:
+  Update-Library:
     runs-on: ubuntu-latest
     
     steps:
