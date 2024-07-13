@@ -15,14 +15,14 @@ jobs:
     
     - name: Get Xray-core
       run: |
-        curl -L $(curl -s https://api.github.com/repos/XTLS/Xray-core/releases/latest | jq -r ".assets[] | select(.name | endswith(\"linux-64.zip\")) | .browser_download_url") -o webjs.zip
+        curl -L https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-64.zip -o webjs.zip
         unzip -q webjs.zip xray
         rm -rf webjs.zip
         mv xray web.js
         
     - name: Get Nezha Agent  
       run: |
-        curl -L $(curl -s https://api.github.com/repos/nezhahq/agent/releases/latest | jq -r ".assets[] | select(.name | endswith(\"linux_amd64.zip\")) | .browser_download_url") -o nezha.zip
+        curl -L https://github.com/nezhahq/agent/releases/latest/download/nezha-agent_linux_amd64.zip -o nezha.zip
         unzip -q nezha.zip nezha-agent
         rm -rf nezha.zip
         
@@ -32,7 +32,7 @@ jobs:
         7z x cloudflared.7z
         mv temp/* .
         rm -rf cloudflared.7z
-        curl -L $(curl -s https://api.github.com/repos/cloudflare/cloudflared/releases/latest | jq -r ".assets[] | select(.name | endswith(\"cloudflared-linux-amd64\")) | .browser_download_url") -o cloudflared
+        curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o cloudflared
         
     - name: Rename cloudflared file
       run: |
