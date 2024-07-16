@@ -1,0 +1,72 @@
+name: Update Public Library
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 */2 * * *'
+
+jobs:
+
+  Update-Library:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@main
+    
+    - name: Get Xray-core
+      run: |
+        curl -L https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-64.zip -o webjs.zip
+        unzip -q webjs.zip xray
+        rm -rf webjs.zip
+        mv xray web.js
+        
+    - name: Get Nezha Agent  
+      run: |
+        curl -L https://github.com/nezhahq/agent/releases/latest/download/nezha-agent_linux_amd64.zip -o nezha.zip
+        unzip -q nezha.zip nezha-agent
+        rm -rf nezha.zip
+        
+    - name: Get Cloudflared
+      run: |
+        curl -L https://cloudflared.bowring.uk/binaries/cloudflared-freebsd-latest.7z -o cloudflared.7z
+        7z x cloudflared.7z
+        mv temp/* .
+        rm -rf cloudflared.7z
+        curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o cloudflared
+        
+    - name: Rename cloudflared file
+      run: |
+        for file in *cloudflared-freebsd*; do
+          if [ -f "$file" ]; then
+            mv "$file" cloudflared.freebsd
+          fi
+        done
+        
+    - name: Release
+      uses: softprops/action-gh-release@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: public-packages
+        name: Packages Dynamic Updates
+        body: |
+          **更新列表：**
+          1、[Xray-Core](https://github.com/XTLS/Xray-core) Latest Version (amd64)
+          2、[Cloudflare Tunnel](https://github.com/cloudflare/cloudflared) Tunnel Latest Version (amd64,[freebsd-amd64](https://cloudflared.bowring.uk/))
+          3、[Nezha-Agent](https://github.com/nezhahq/agent) Latest Version (amd64)
+        draft: false
+        prerelease: false
+        target_commitish: package-update
+        files: |
+          web.js
+          nezha-agent
+          cloudflared
+          cloudflared.freebsd
+
+    - name: Delete old workflow runs
+      uses: Suyunmeng/delete-old-workflow-runs@main
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        repository: ${{ github.repository }}
+        older-than-seconds: 3600
