@@ -70,6 +70,7 @@ jobs:
         done
         
     - name: Commit and Push to Repo
+      continue-on-error: true
       run: |
         DATE=$(date "+%Y/%m/%d %H:%M:%S")
         git config user.name "GitHub Actions Bot"
