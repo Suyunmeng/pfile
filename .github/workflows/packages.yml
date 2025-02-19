@@ -44,9 +44,12 @@ jobs:
         wget -O caddy.amd64.tar.gz ${URL}
         URL=$(wget -qO- "https://api.github.com/repos/caddyserver/caddy/releases/latest" | grep -o "https.*linux_arm64.tar.gz" | sed -n '1p')
         wget -O caddy.arm64.tar.gz ${URL}
-        tar zxvf caddy.amd64.tar.gz -C Packages/caddy caddy.amd64
-        tar zxvf caddy.arm64.tar.gz -C Packages/caddy caddy.arm64
-        rm -f caddy.amd64.tar.gz caddy.arm64.tar.gz
+        tar zxvf caddy.amd64.tar.gz -C Packages/caddy caddy
+        mv caddy Packages/caddy/caddy.amd64
+        rm -rf caddy caddy.amd64.tar.gz
+        tar zxvf caddy.arm64.tar.gz -C Packages/caddy caddy
+        mv caddy Packages/caddy/caddy.arm64
+        rm -f caddy.arm64.tar.gz
         
     - name: Get Cloudflared-Freebsd
       run: |
