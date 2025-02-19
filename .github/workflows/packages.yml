@@ -43,7 +43,7 @@ jobs:
           if [ -f "$file" ]; then
             mv "$file" cloudflared.freebsd
           fi
-          mv cloudflared-freebsd Packages/cloudflared-freebsd/cloudflared.freebsd
+          mv cloudflared.freebsd Packages/cloudflared-freebsd/cloudflared.freebsd
           rm -rf cloudflared-freebsd
         done
         
