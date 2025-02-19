@@ -44,8 +44,6 @@ jobs:
             mv "$file" cloudflared.freebsd
           fi
         done
-        mv cloudflared-freebsd Packages/cloudflared-freebsd/cloudflared.freebsd
-        rm -rf cloudflared-freebsd
         
     - name: Commit and Push to Repo
       run: |
