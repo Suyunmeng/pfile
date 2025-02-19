@@ -49,11 +49,17 @@ jobs:
         
     - name: Commit and Push to Repo
       run: |
-        git config --global user.name "github-actions"
-        git config --global user.email "github-actions@github.com"
+        DATE=$(date "+%Y/%m/%d %H:%M:%S")
+        git config user.name "GitHub Actions Bot"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
         git add .
-        git commit -m "Update Public packages"
-        git push origin main
+        git commit -m "AutoUpdate Files to ${DATE}"
+
+    - name: Push changes
+      if: steps.latest_xray_release.outputs.xray_download_required == 'true' || steps.latest_nezha_agent_release.outputs.nezha_agent_download_required == 'true'
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Delete old workflow runs
       uses: Suyunmeng/delete-old-workflow-runs@main
