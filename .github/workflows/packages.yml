@@ -28,6 +28,14 @@ jobs:
         unzip -q nezha.zip nezha-agent
         mv nezha-agent Packages/nezha/nezha-agent
         rm -rf nezha.zip nezha-agent
+
+    - name: Get Caddy Server  
+      run: |
+        rm -rf Packages/caddy/caddy
+        URL=$(wget -qO- "https://api.github.com/repos/caddyserver/caddy/releases/latest" | grep -o "https.*linux_amd64.tar.gz" | sed -n '1p')
+        wget -O caddy.tar.gz ${URL}
+        tar zxvf caddy.tar.gz Packages/caddy/caddy
+        rm -f caddy.tar.gz
         
     - name: Get Cloudflared-Freebsd
       run: |
