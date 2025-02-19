@@ -84,6 +84,7 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Sync to Gitlab
+      continue-on-error: true
       uses: Suyunmeng/gitlab-sync@master
       with:
         gitlab_url: ${{ secrets.GITLAB_URL }}
