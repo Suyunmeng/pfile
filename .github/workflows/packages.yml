@@ -27,7 +27,7 @@ jobs:
         
     - name: Get Nezha Agent  
       run: |
-        rm -rf Packages/nezha/nezha-agent
+        rm -rf Packages/nezha/nezha-agent.amd64 Packages/nezha/nezha-agent.arm64
         curl -L https://github.com/nezhahq/agent/releases/latest/download/nezha-agent_linux_amd64.zip -o nezha.amd64.zip
         curl -L https://github.com/nezhahq/agent/releases/latest/download/nezha-agent_linux_arm64.zip -o nezha.arm64.zip
         unzip -q nezha.amd64.zip nezha-agent
@@ -39,7 +39,7 @@ jobs:
 
     - name: Get Caddy Server  
       run: |
-        rm -rf Packages/caddy/caddy
+        rm -rf Packages/caddy/caddy.amd64 Packages/caddy/caddy.arm64
         URL=$(wget -qO- "https://api.github.com/repos/caddyserver/caddy/releases/latest" | grep -o "https.*linux_amd64.tar.gz" | sed -n '1p')
         wget -O caddy.amd64.tar.gz ${URL}
         URL=$(wget -qO- "https://api.github.com/repos/caddyserver/caddy/releases/latest" | grep -o "https.*linux_arm64.tar.gz" | sed -n '1p')
@@ -81,6 +81,13 @@ jobs:
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Sync to Gitlab
+      uses: Suyunmeng/gitlab-sync@master
+      with:
+        gitlab_url: ${{ secrets.GITLAB_URL }}
+        username: ${{ secrets.GITLAB_USERNAME }}
+        gitlab_pat: ${{ secrets.GITLAB_PAT }}
 
     - name: Delete old workflow runs
       uses: Suyunmeng/delete-old-workflow-runs@main
