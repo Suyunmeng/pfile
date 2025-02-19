@@ -36,6 +36,14 @@ jobs:
         7z x cloudflared.7z
         mv temp/* .
         rm -rf cloudflared.7z
+
+    - name: Rename cloudflared file
+      run: |
+        for file in *cloudflared-freebsd*; do
+          if [ -f "$file" ]; then
+            mv "$file" cloudflared.freebsd
+          fi
+        done
         mv cloudflared-freebsd Packages/cloudflared-freebsd/cloudflared.freebsd
         rm -rf cloudflared-freebsd
         
