@@ -15,24 +15,27 @@ jobs:
     
     - name: Get Xray-core
       run: |
+        rm -rf Packages/web.js/web.js
         curl -L https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-64.zip -o webjs.zip
         unzip -q webjs.zip xray
-        rm -rf webjs.zip
-        mv xray web.js
+        mv xray Packages/web.js/web.js
+        rm -rf xray webjs.zip
         
     - name: Get Nezha Agent  
       run: |
+        rm -rf Packages/nezha/nezha-agent
         curl -L https://github.com/nezhahq/agent/releases/latest/download/nezha-agent_linux_amd64.zip -o nezha.zip
         unzip -q nezha.zip nezha-agent
-        rm -rf nezha.zip
+        mv nezha-agent Packages/nezha/nezha-agent
+        rm -rf nezha.zip nezha-agent
         
-    - name: Get Cloudflared
+    - name: Get Cloudflared-Freebsd
       run: |
+        rm -rf Packages/cloudflared-freebsd/cloudflared.freebsd
         curl -L https://cloudflared.bowring.uk/binaries/cloudflared-freebsd-latest.7z -o cloudflared.7z
         7z x cloudflared.7z
         mv temp/* .
         rm -rf cloudflared.7z
-        curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o cloudflared
         
     - name: Rename cloudflared file
       run: |
@@ -41,27 +44,16 @@ jobs:
             mv "$file" cloudflared.freebsd
           fi
         done
+        mv cloudflared.freebsd Packages/cloudflared-freebsd/cloudflared.freebsd
+        rm -rf cloudflared.freebsd
         
-    - name: Release
-      uses: softprops/action-gh-release@v2.1.0
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: public-packages
-        name: Packages Dynamic Updates
-        body: |
-          **更新列表：**
-          1、[Xray-Core](https://github.com/XTLS/Xray-core) Latest Version (amd64)
-          2、[Cloudflare Tunnel](https://github.com/cloudflare/cloudflared) Tunnel Latest Version (amd64,[freebsd-amd64](https://cloudflared.bowring.uk/))
-          3、[Nezha-Agent](https://github.com/nezhahq/agent) Latest Version (amd64)
-        draft: false
-        prerelease: false
-        target_commitish: package-update
-        files: |
-          web.js
-          nezha-agent
-          cloudflared
-          cloudflared.freebsd
+    - name: Commit and Push to Repo
+      run: |
+        git config --global user.name "github-actions"
+        git config --global user.email "github-actions@github.com"
+        git add .
+        git commit -m "Update Public packages"
+        git push origin main
 
     - name: Delete old workflow runs
       uses: Suyunmeng/delete-old-workflow-runs@main

@@ -1,5 +1,7 @@
-Files Autoupdate:
+Files Autoupdate [Every 2 hours Update]:
 
-Xray-Core:raytunnel/web.js
+Xray-Core:Packages/web.js/web.js [Latest]
 
-Nezha-Agent:other/nezha-agent
+Nezha-Agent:Packages/nezha/nezha-agent [Latest]
+
+Cloudflared[Freebsd Version]:Packages/cloudflared-freebsd/cloudflared.freebsd [Latest]
