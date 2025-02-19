@@ -15,27 +15,38 @@ jobs:
     
     - name: Get Xray-core
       run: |
-        rm -rf Packages/web.js/web.js
-        curl -L https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-64.zip -o webjs.zip
-        unzip -q webjs.zip xray
-        mv xray Packages/web.js/web.js
-        rm -rf xray webjs.zip
+        rm -rf Packages/web.js/web.amd64.js Packages/web.js/web.arm64.js
+        curl -L https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-64.zip -o webjs.amd64.zip
+        curl -L https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-arm64-v8a.zip -o webjs.arm64.zip
+        unzip -q webjs.amd64.zip xray
+        mv xray Packages/web.js/web.amd64.js
+        rm -rf xray webjs.amd64.zip
+        unzip -q webjs.arm64.zip xray
+        mv xray Packages/web.js/web.arm64.js
+        rm -rf xray webjs.arm64.zip
         
     - name: Get Nezha Agent  
       run: |
         rm -rf Packages/nezha/nezha-agent
-        curl -L https://github.com/nezhahq/agent/releases/latest/download/nezha-agent_linux_amd64.zip -o nezha.zip
-        unzip -q nezha.zip nezha-agent
-        mv nezha-agent Packages/nezha/nezha-agent
-        rm -rf nezha.zip nezha-agent
+        curl -L https://github.com/nezhahq/agent/releases/latest/download/nezha-agent_linux_amd64.zip -o nezha.amd64.zip
+        curl -L https://github.com/nezhahq/agent/releases/latest/download/nezha-agent_linux_arm64.zip -o nezha.arm64.zip
+        unzip -q nezha.amd64.zip nezha-agent
+        mv nezha-agent Packages/nezha/nezha-agent.amd64
+        rm -rf nezha.amd64.zip nezha-agent
+        unzip -q nezha.arm64.zip nezha-agent
+        mv nezha-agent Packages/nezha/nezha-agent.arm64
+        rm -rf nezha.arm64.zip nezha-agent        
 
     - name: Get Caddy Server  
       run: |
         rm -rf Packages/caddy/caddy
         URL=$(wget -qO- "https://api.github.com/repos/caddyserver/caddy/releases/latest" | grep -o "https.*linux_amd64.tar.gz" | sed -n '1p')
-        wget -O caddy.tar.gz ${URL}
-        tar zxvf caddy.tar.gz -C Packages/caddy caddy
-        rm -f caddy.tar.gz
+        wget -O caddy.amd64.tar.gz ${URL}
+        URL=$(wget -qO- "https://api.github.com/repos/caddyserver/caddy/releases/latest" | grep -o "https.*linux_arm64.tar.gz" | sed -n '1p')
+        wget -O caddy.arm64.tar.gz ${URL}
+        tar zxvf caddy.amd64.tar.gz -C Packages/caddy caddy.amd64
+        tar zxvf caddy.arm64.tar.gz -C Packages/caddy caddy.arm64
+        rm -f caddy.amd64.tar.gz caddy.arm64.tar.gz
         
     - name: Get Cloudflared-Freebsd
       run: |
