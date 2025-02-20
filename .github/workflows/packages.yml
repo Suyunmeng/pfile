@@ -35,7 +35,19 @@ jobs:
         rm -rf nezha.amd64.zip nezha-agent
         unzip -q nezha.arm64.zip nezha-agent
         mv nezha-agent Packages/nezha/nezha-agent.arm64
-        rm -rf nezha.arm64.zip nezha-agent        
+        rm -rf nezha.arm64.zip nezha-agent
+
+    - name: Get Wireproxy 
+      run: |
+        rm -rf Packages/wireproxy/wirerpoxy.amd64 Packages/wireproxy/wireproxy.arm64
+        curl -L https://github.com/pufferffish/wireproxy/releases/latest/download/wireproxy_linux_amd64.tar.gz -o wireproxy.amd64.zip
+        curl -L https://github.com/pufferffish/wireproxy/releases/latest/download/wireproxy_linux_arm64.tar.gz -o wireproxy.arm64.zip
+        tar xzvf wireproxy.amd64.tar.gz wireproxy
+        mv wireproxy Packages/wireproxy/wireproxy.amd64
+        rm -rf wireproxy.amd64.zip wireproxy
+        unzip -q wireproxy.arm64.zip wireproxy
+        mv wireproxy Packages/wireproxy/wireproxy.arm64
+        rm -rf wireproxy.arm64.zip wireproxy
 
     - name: Get Caddy Server  
       run: |
