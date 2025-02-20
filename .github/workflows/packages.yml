@@ -95,14 +95,6 @@ jobs:
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Sync to Gitlab
-      continue-on-error: true
-      uses: Suyunmeng/gitlab-sync@master
-      with:
-        gitlab_url: ${{ secrets.GITLAB_URL }}
-        username: ${{ secrets.GITLAB_USERNAME }}
-        gitlab_pat: ${{ secrets.GITLAB_PAT }}
-
     - name: Delete old workflow runs
       uses: Suyunmeng/delete-old-workflow-runs@main
       env:
