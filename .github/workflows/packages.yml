@@ -1,0 +1,104 @@
+name: Update Public Library
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 */2 * * *'
+
+jobs:
+
+  Update-Library:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@main
+    
+    - name: Get Xray-core
+      run: |
+        rm -rf Packages/web.js/web.amd64.js Packages/web.js/web.arm64.js
+        curl -L https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-64.zip -o webjs.amd64.zip
+        curl -L https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-arm64-v8a.zip -o webjs.arm64.zip
+        unzip -q webjs.amd64.zip xray
+        mv xray Packages/web.js/web.amd64.js
+        rm -rf xray webjs.amd64.zip
+        unzip -q webjs.arm64.zip xray
+        mv xray Packages/web.js/web.arm64.js
+        rm -rf xray webjs.arm64.zip
+        
+    - name: Get Nezha Agent  
+      run: |
+        rm -rf Packages/nezha/nezha-agent.amd64 Packages/nezha/nezha-agent.arm64
+        curl -L https://github.com/nezhahq/agent/releases/latest/download/nezha-agent_linux_amd64.zip -o nezha.amd64.zip
+        curl -L https://github.com/nezhahq/agent/releases/latest/download/nezha-agent_linux_arm64.zip -o nezha.arm64.zip
+        unzip -q nezha.amd64.zip nezha-agent
+        mv nezha-agent Packages/nezha/nezha-agent.amd64
+        rm -rf nezha.amd64.zip nezha-agent
+        unzip -q nezha.arm64.zip nezha-agent
+        mv nezha-agent Packages/nezha/nezha-agent.arm64
+        rm -rf nezha.arm64.zip nezha-agent
+
+    - name: Get Wireproxy 
+      run: |
+        rm -rf Packages/wireproxy/wirerpoxy.amd64 Packages/wireproxy/wireproxy.arm64
+        curl -L https://github.com/pufferffish/wireproxy/releases/latest/download/wireproxy_linux_amd64.tar.gz -o wireproxy.amd64.tar.gz
+        curl -L https://github.com/pufferffish/wireproxy/releases/latest/download/wireproxy_linux_arm64.tar.gz -o wireproxy.arm64.tar.gz
+        tar xzvf wireproxy.amd64.tar.gz wireproxy
+        mv wireproxy Packages/wireproxy/wireproxy.amd64
+        rm -rf wireproxy.amd64.tar.gz wireproxy
+        tar xzvf wireproxy.arm64.tar.gz wireproxy
+        mv wireproxy Packages/wireproxy/wireproxy.arm64
+        rm -rf wireproxy.arm64.tar.gz wireproxy
+
+    - name: Get Caddy Server  
+      run: |
+        rm -rf Packages/caddy/caddy.amd64 Packages/caddy/caddy.arm64
+        URL=$(wget -qO- "https://api.github.com/repos/caddyserver/caddy/releases/latest" | grep -o "https.*linux_amd64.tar.gz" | sed -n '1p')
+        wget -O caddy.amd64.tar.gz ${URL}
+        URL=$(wget -qO- "https://api.github.com/repos/caddyserver/caddy/releases/latest" | grep -o "https.*linux_arm64.tar.gz" | sed -n '1p')
+        wget -O caddy.arm64.tar.gz ${URL}
+        tar zxvf caddy.amd64.tar.gz caddy
+        mv caddy Packages/caddy/caddy.amd64
+        rm -rf caddy caddy.amd64.tar.gz
+        tar zxvf caddy.arm64.tar.gz caddy
+        mv caddy Packages/caddy/caddy.arm64
+        rm -f caddy.arm64.tar.gz
+        
+    - name: Get Cloudflared-Freebsd
+      run: |
+        rm -rf Packages/cloudflared-freebsd/cloudflared.freebsd
+        curl -L https://cloudflared.bowring.uk/binaries/cloudflared-freebsd-latest.7z -o cloudflared.7z
+        7z x cloudflared.7z
+        mv temp/* .
+        rm -rf cloudflared.7z
+
+    - name: Rename cloudflared file
+      run: |
+        for file in *cloudflared-freebsd*; do
+          if [ -f "$file" ]; then
+            mv "$file" cloudflared.freebsd
+          fi
+          mv cloudflared.freebsd Packages/cloudflared-freebsd/cloudflared.freebsd
+          rm -rf cloudflared-freebsd
+        done
+        
+    - name: Commit and Push to Repo
+      continue-on-error: true
+      run: |
+        DATE=$(date "+%Y/%m/%d %H:%M:%S")
+        git config user.name "GitHub Actions Bot"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add .
+        git commit -m "AutoUpdate Files to ${DATE}"
+
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Delete old workflow runs
+      uses: Suyunmeng/delete-old-workflow-runs@main
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        repository: ${{ github.repository }}
+        older-than-seconds: 3600

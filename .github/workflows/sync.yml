@@ -1,0 +1,32 @@
+name: Sync to GitLab
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: [Update Public Library]
+    types: [completed]
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@main
+        with:
+          fetch-depth: 0
+
+      - name: Sync to Gitlab
+        uses: Suyunmeng/gitlab-sync@master
+        with:
+          gitlab_url: ${{ secrets.GITLAB_URL }}
+          username: ${{ secrets.GITLAB_USERNAME }}
+          gitlab_pat: ${{ secrets.GITLAB_PAT }}
+
+      - name: Delete old workflow runs
+        uses: Suyunmeng/delete-old-workflow-runs@main
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          repository: ${{ github.repository }}
+          older-than-seconds: 3600
